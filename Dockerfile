@@ -7,7 +7,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     WINEARCH=win64 \
     HOME=/root
 
-# Step 1: Core tools
+# Step 1: Core tools + noVNC setup
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget curl ca-certificates gnupg2 \
     xvfb x11vnc fluxbox xterm \
@@ -15,8 +15,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip \
     git lftp \
     nginx \
-    novnc websockify \
-    pcmanfm gedit \
+    novnc \
+    && pip3 install websockify \
     && rm -rf /var/lib/apt/lists/*
 
 # Step 2: Wine
@@ -28,8 +28,18 @@ RUN dpkg --add-architecture i386 \
     && apt-get install -y --install-recommends winehq-stable \
     && rm -rf /var/lib/apt/lists/*
 
-# Step 3: App files
-RUN mkdir -p /app/scripts /data/backup /data/wine /root/workspace /root/Desktop
+# Step 3: Extra desktop tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    pcmanfm gedit \
+    && rm -rf /var/lib/apt/lists/*
+
+# Step 4: Verify websockify works and find novnc path
+RUN which websockify && python3 -m websockify --help 2>&1 | head -3 || true
+RUN ls /usr/share/novnc/ 2>/dev/null && echo "novnc found" || echo "novnc not in /usr/share"
+RUN find / -name "vnc.html" 2>/dev/null | head -5 || echo "vnc.html not found"
+
+# Step 5: App files
+RUN mkdir -p /app/scripts /data/backup /data/wine /root/workspace /root/Desktop /var/log/supervisor
 
 WORKDIR /app
 COPY scripts/ /app/scripts/
@@ -39,14 +49,13 @@ COPY entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /app/scripts/*.sh /entrypoint.sh
 
-# Find websockify path and test noVNC
-RUN which websockify && ls /usr/share/novnc/ || echo "novnc dir not found"
-
-# Step 4: Fluxbox config
+# Step 6: Fluxbox config
 RUN mkdir -p /root/.fluxbox \
-    && printf '[begin] (Menu)\n[exec] (Terminal) {xterm}\n[exec] (File Manager) {pcmanfm}\n[exec] (Text Editor) {gedit}\n[end]\n' > /root/.fluxbox/menu \
+    && printf '[begin] (Menu)\n[exec] (Terminal) {xterm}\n[exec] (File Manager) {pcmanfm}\n[end]\n' > /root/.fluxbox/menu \
     && echo "session.screen0.toolbar.visible: false" > /root/.fluxbox/init
 
-EXPOSE 8080
+# Build timestamp to bust cache
+RUN echo "Build: 2026-07-28-v5" > /build-info.txt
 
+EXPOSE 8080
 CMD ["/entrypoint.sh"]

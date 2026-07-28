@@ -1,4 +1,5 @@
 FROM ubuntu:22.04
+# Cache bust: v6-fresh-build
 
 ENV DEBIAN_FRONTEND=noninteractive \
     DISPLAY=:99 \

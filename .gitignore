@@ -1,0 +1,27 @@
+# Backups
+backups/
+*.tar.gz
+*.zip
+
+# Logs
+*.log
+logs/
+
+# Docker volumes
+wine_data/
+desktop_data/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+*~
+
+# Environment
+.env
+.env.local

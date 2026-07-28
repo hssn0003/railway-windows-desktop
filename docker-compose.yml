@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  windows-desktop:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kiro-chrome-desktop
+    ports:
+      - "6080:6080"  # noVNC web interface
+      - "5900:5900"  # VNC port (optional)
+      - "8080:8080"  # Backup Panel
+    environment:
+      - VNC_PASSWORD=railway123
+      - DISPLAY=:99
+      - WINEPREFIX=/root/.wine
+      - WINEARCH=win64
+      # GitHub Configuration (REQUIRED for GitHub backup)
+      - GITHUB_TOKEN=your_github_token_here
+      - GITHUB_REPO=username/repo-name
+      # FTP Configuration (Optional)
+      - FTP_HOST=ftp.example.com
+      - FTP_USER=username
+      - FTP_PASS=password
+      - FTP_PATH=/backups
+      # Git Configuration
+      - GIT_EMAIL=user@example.com
+      - GIT_NAME=Your Name
+    volumes:
+      # Persistent storage for Wine and apps
+      - wine_data:/root/.wine
+      - desktop_data:/root/Desktop
+      # Backup storage
+      - ./backups:/data/backup
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6080/vnc.html"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    shm_size: '2gb'  # Shared memory for Chrome
+
+volumes:
+  wine_data:
+    driver: local
+  desktop_data:
+    driver: local

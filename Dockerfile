@@ -39,6 +39,9 @@ COPY entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /app/scripts/*.sh /entrypoint.sh
 
+# Find websockify path and test noVNC
+RUN which websockify && ls /usr/share/novnc/ || echo "novnc dir not found"
+
 # Step 4: Fluxbox config
 RUN mkdir -p /root/.fluxbox \
     && printf '[begin] (Menu)\n[exec] (Terminal) {xterm}\n[exec] (File Manager) {pcmanfm}\n[exec] (Text Editor) {gedit}\n[end]\n' > /root/.fluxbox/menu \

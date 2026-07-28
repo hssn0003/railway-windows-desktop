@@ -1,5 +1,7 @@
 FROM ubuntu:22.04
 # Cache bust: v6-fresh-build
+# Force rebuild all layers
+ARG CACHEBUST=2026072801
 
 ENV DEBIAN_FRONTEND=noninteractive \
     DISPLAY=:99 \
